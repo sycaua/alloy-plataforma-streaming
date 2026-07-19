@@ -1,6 +1,6 @@
 module plataforma
 
-sig plataforma {
+one sig plataforma {
     conteudos: set Conteudo,
     usuarios: set Usuario,
     perfis: set Perfil
@@ -55,7 +55,7 @@ fact PlataformaUnica {
 // Fato: todo perfil é associado a exatamente um usuário.
 fact AssociacaoPerfil {
     all u : Usuario |
-        u.perfis = u.~conta
+        u.perfisAssociados = u.~contaAssociada
 }
 
 // Fato: restrições numéricas dos números de perfis permitidos por tipo de plano assinado.
@@ -64,17 +64,17 @@ fact LimitacoesNumericasPlanos {
     // Plano Básico: no máximo dois perfis simultâneos.
     all u : Usuario |
         u.planoAssinado = Basico implies
-            #u.perfis <= 2
+            #u.perfisAssociados <= 2
 
     // Plano Plus: no máximo quatro perfis simultâneos.
     all u : Usuario |
         u.planoAssinado = Plus implies
-            #u.perfis <= 4
+            #u.perfisAssociados <= 4
 
     // Plano Premium: sem limites de perfis.
     all u : Usuario |
         u.planoAssinado = Premium implies
-            #u.perfis >= 0
+            #u.perfisAssociados >= 0
 }
 
 // Fato: o acesso aos conteúdos é definido pelo tipo de plano do usuário.
@@ -98,3 +98,5 @@ fact LimitacoesDeAcessoPlanos {
             all c : pf.catalogoAcessivel |
                 c.planoMinimo in Plano
 }
+
+run {} for 5
