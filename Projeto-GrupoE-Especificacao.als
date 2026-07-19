@@ -42,8 +42,7 @@ sig Perfil {
 
 // Fato: uma única plataforma para todos os componentes.
 fact PlataformaUnica {
-    all c : Conteudo |
-        one p : plataforma | c in p.conteudos
+    all c : Conteudo | one p : plataforma | c in p.conteudos
 
     all u : Usuario |
         one p : plataforma | u in p.usuarios
@@ -54,8 +53,7 @@ fact PlataformaUnica {
 
 // Fato: todo perfil é associado a exatamente um usuário.
 fact AssociacaoPerfil {
-    all u : Usuario |
-        u.perfisAssociados = u.~contaAssociada
+    all u : Usuario | u.perfisAssociados = u.~contaAssociada
 }
 
 // Fato: restrições numéricas dos números de perfis permitidos por tipo de plano assinado.
@@ -63,40 +61,29 @@ fact LimitacoesNumericasPlanos {
 
     // Plano Básico: no máximo dois perfis simultâneos.
     all u : Usuario |
-        u.planoAssinado = Basico implies
-            #u.perfisAssociados <= 2
+        u.planoAssinado = Basico implies #u.perfisAssociados <= 2
 
     // Plano Plus: no máximo quatro perfis simultâneos.
-    all u : Usuario |
-        u.planoAssinado = Plus implies
-            #u.perfisAssociados <= 4
+    all u : Usuario | u.planoAssinado = Plus implies #u.perfisAssociados <= 4
 
     // Plano Premium: sem limites de perfis.
-    all u : Usuario |
-        u.planoAssinado = Premium implies
-            #u.perfisAssociados >= 0
+    all u : Usuario | u.planoAssinado = Premium implies #u.perfisAssociados >= 0
 }
 
 // Fato: o acesso aos conteúdos é definido pelo tipo de plano do usuário.
 fact LimitacoesDeAcessoPlanos {
 
     // Plano Básico só libera acesso aos conteúdos básicos.
-    all pf : Perfil |
-        pf.contaAssociada.planoAssinado = Basico implies
-            all c : pf.catalogoAcessivel |
-                c.planoMinimo = Basico
+    all pf : Perfil | pf.contaAssociada.planoAssinado = Basico implies
+            all c : pf.catalogoAcessivel | c.planoMinimo = Basico
 
     // Plano Plus libera acesso aos conteúdos básicos e aos pluses, mas não aos premiums.
-    all pf : Perfil |
-        pf.contaAssociada.planoAssinado = Plus implies
-            all c : pf.catalogoAcessivel |
-                c.planoMinimo != Premium
+    all pf : Perfil | pf.contaAssociada.planoAssinado = Plus implies
+            all c : pf.catalogoAcessivel | c.planoMinimo != Premium
 
     // Plano Premium libera acesso a todos os conteúdos.
-    all pf : Perfil |
-        pf.contaAssociada.planoAssinado = Premium implies
-            all c : pf.catalogoAcessivel |
-                c.planoMinimo in Plano
+    all pf : Perfil | pf.contaAssociada.planoAssinado = Premium implies
+            all c : pf.catalogoAcessivel | c.planoMinimo in Plano
 }
 
 run {} for 5
