@@ -109,6 +109,4 @@ assert PlataformaVazia {
     no p : Plataforma | #p.conteudos = 0 and #p.usuarios = 0 and #p.perfis = 0
 } 
 
-assert 
-
 run {} for 5
