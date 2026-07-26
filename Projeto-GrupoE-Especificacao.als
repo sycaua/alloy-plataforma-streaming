@@ -1,6 +1,6 @@
 module plataforma
 
-one sig plataforma {
+one sig Plataforma {
     conteudos: set Conteudo,
     usuarios: set Usuario,
     perfis: set Perfil
@@ -32,7 +32,8 @@ sig Conteudo {
 
 sig Usuario {
     planoAssinado: one Plano,
-    perfisAssociados: set Perfil
+    classificacaoIndicativa: one ClassificacaoIndicativa,
+    perfisAssociados: set Perfil 
 }
 
 sig Perfil {
@@ -42,13 +43,13 @@ sig Perfil {
 
 // Fato: uma única plataforma para todos os componentes.
 fact PlataformaUnica {
-    all c : Conteudo | one p : plataforma | c in p.conteudos
+    all c : Conteudo | one p : Plataforma | c in p.conteudos
 
     all u : Usuario |
-        one p : plataforma | u in p.usuarios
+        one p : Plataforma | u in p.usuarios
 
     all pf : Perfil |
-        one p : plataforma | pf in p.perfis
+        one p : Plataforma | pf in p.perfis
 }
 
 // Fato: todo perfil é associado a exatamente um usuário.
@@ -86,27 +87,98 @@ fact LimitacoesDeAcessoPlanos {
             all c : pf.catalogoAcessivel | c.planoMinimo in Plano
 }
 
+// Fato: o acesso aos conteudos é definido pela idade
+fact LimitacoesDeAcessoClassificacaoIndicativa {
+    all u : Usuario | all p : u.perfisAssociados | all c : p.catalogoAcessivel |
+        (u.classificacaoIndicativa = Livre implies c.classificacaoIndicativa = Livre) and
+        (u.classificacaoIndicativa = ApenasAdolescentes implies c.classificacaoIndicativa in Livre + ApenasAdolescentes) and
+        (u.classificacaoIndicativa = ApenasAdultos implies c.classificacaoIndicativa in Livre + ApenasAdultos)
+}
+
+// Testes:
+
+// Plataforma vazia
+assert PlataformaVazia {
+    no p : Plataforma | #p.conteudos = 0 and #p.usuarios = 0 and #p.perfis = 0
+} 
+
+// Toda perfil deve ter um usuario
+assert PerfilPertenceAoUsuario {
+    all p : Perfil | p in p.contaAssociada.perfisAssociados
+}
+
+// Usuarios com contas basicas so podem ter no maximo 2 perfis
+assert TamanhoMaximoBasico {
+    no u : Usuario | u.planoAssinado = Basico and #u.perfisAssociados > 2
+}
+
+// Usuarios com contas premium so podem ter no maximo 4 perfis
+assert TamanhoMaximoPlus {
+    no u : Usuario | u.planoAssinado = Plus and #u.perfisAssociados > 4
+}
+
+// usuarios de plano basico so podem acessar conteudo basico
 assert BasicoAcessaApenasBasico {
     no pf : Perfil | pf.contaAssociada.planoAssinado = Basico and
         some c : pf.catalogoAcessivel | c.planoMinimo != Basico
 }
 
-assert PremiumAcessaApenasPlus {
-    no pf : Perfil | pf.contaAssociada.planoAssinado = Plus and
-        some c : pf.catalogoAcessivel | c.planoMinimo = Premium
+// usuarios do plano basico não podem acessar conteudos plus ou premium
+assert BasicoNaoAcessaPlusNemPremium {
+    all p : Perfil | p.contaAssociada.planoAssinado = Basico implies
+        all c : p.catalogoAcessivel | c.planoMinimo = Basico
 }
 
-
-assert TamanhoMaximoBasico {
-    no u : Usuario | u.planoAssinado = Basico and #u.perfisAssociados > 2
+// usuarios do plano plus não podem acessar conteudos premium
+assert PlusNaoAcessaPremium {
+    all p : Perfil | p.contaAssociada.planoAssinado = Plus implies
+        all c : p.catalogoAcessivel | c.planoMinimo != Premium 
 }
 
-assert TamanhoMaximoPlus {
-    no u : Usuario | u.planoAssinado = Plus and #u.perfisAssociados > 4
+// usuarios do plano plus podem acessar conteudos basicos
+assert PlusAcessaTodoBasico {
+    all p : Perfil | p.contaAssociada.planoAssinado = Plus implies
+        all c : Conteudo | c.planoMinimo = Basico implies
+            c in p.catalogoAcessivel
 }
 
-assert PlataformaVazia {
-    no p : Plataforma | #p.conteudos = 0 and #p.usuarios = 0 and #p.perfis = 0
-} 
+// usuarios premium podem acessar todos os conteudos
+assert PremiumTemAcessoATudo {
+    all p : Perfil | p.contaAssociada.planoAssinado = Premium implies
+        all c : Conteudo | c in p.catalogoAcessivel
+}
+
+// Adultos e adolecentes podem ver conteudo livre
+assert ConteudoLivrePodeSerVistoPorTodos {
+    all c : Conteudo | c.classificacaoIndicativa = Livre implies
+        all p : Perfil | c in p.catalogoAcessivel
+}
+
+// Adolescentes não podem ver conteúdo adulto
+assert ConteudoAdultoNaoEVistoPorAdolescentes {
+    no u : Usuario | u.classificacaoIndicativa = ApenasAdolescentes and
+        some p : u.perfisAssociados |
+            some c : p.catalogoAcessivel | c.classificacaoIndicativa = ApenasAdultos
+}
+
+// Adultos não podem ver conteúdo adolescente
+assert ConteudoAdolescenteNaoEVistoPorAdultos {
+    no u : Usuario | u.classificacaoIndicativa = ApenasAdultos and
+        some p : u.perfisAssociados |
+            some c : p.catalogoAcessivel | c.classificacaoIndicativa = ApenasAdolescentes
+}
+
+check PlataformaVazia for 5
+check PerfilPertenceAoUsuario for 5
+check TamanhoMaximoBasico for 5
+check TamanhoMaximoPlus for 5
+check BasicoAcessaApenasBasico for 5
+check BasicoNaoAcessaPlusNemPremium for 5
+check PlusNaoAcessaPremium for 5
+check PlusAcessaTodoBasico for 5
+check PremiumTemAcessoATudo for 5
+check ConteudoLivrePodeSerVistoPorTodos for 5
+check ConteudoAdultoNaoEVistoPorAdolescentes for 5
+check ConteudoAdolescenteNaoEVistoPorAdultos for 5
 
 run {} for 5
