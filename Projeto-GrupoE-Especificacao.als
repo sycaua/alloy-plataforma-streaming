@@ -74,8 +74,8 @@ fact LimitacoesNumericasPlanos {
 fact LimitacoesDeAcessoPlanos {
 
     // Plano Básico só libera acesso aos conteúdos básicos.
-    all pf : Perfil | pf.contaAssociada.planoAssinado = Basico implies
-            all c : pf.catalogoAcessivel | c.planoMinimo = Basico
+    all pf : Perfil | pf.contaAssociada.planoAssinado = Basico implies 
+        all c : pf.catalogoAcessivel | c.planoMinimo = Basico
 
     // Plano Plus libera acesso aos conteúdos básicos e aos pluses, mas não aos premiums.
     all pf : Perfil | pf.contaAssociada.planoAssinado = Plus implies
@@ -85,5 +85,30 @@ fact LimitacoesDeAcessoPlanos {
     all pf : Perfil | pf.contaAssociada.planoAssinado = Premium implies
             all c : pf.catalogoAcessivel | c.planoMinimo in Plano
 }
+
+assert BasicoAcessaApenasBasico {
+    no pf : Perfil | pf.contaAssociada.planoAssinado = Basico and
+        some c : pf.catalogoAcessivel | c.planoMinimo != Basico
+}
+
+assert PremiumAcessaApenasPlus {
+    no pf : Perfil | pf.contaAssociada.planoAssinado = Plus and
+        some c : pf.catalogoAcessivel | c.planoMinimo = Premium
+}
+
+
+assert TamanhoMaximoBasico {
+    no u : Usuario | u.planoAssinado = Basico and #u.perfisAssociados > 2
+}
+
+assert TamanhoMaximoPlus {
+    no u : Usuario | u.planoAssinado = Plus and #u.perfisAssociados > 4
+}
+
+assert PlataformaVazia {
+    no p : Plataforma | #p.conteudos = 0 and #p.usuarios = 0 and #p.perfis = 0
+} 
+
+assert 
 
 run {} for 5
