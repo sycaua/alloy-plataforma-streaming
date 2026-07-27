@@ -72,18 +72,39 @@ fact LimitacoesNumericasPlanos {
 
 // Fato: o acesso aos conteúdos é definido pelo tipo de plano do usuário.
 fact LimitacoesDeAcessoPlanos {
+  all pf : Perfil | all c : pf.catalogoAcessivel |
+    planoCompativel[pf.contaAssociada.planoAssinado, c]
+}
 
-    // Plano Básico só libera acesso aos conteúdos básicos.
-    all pf : Perfil | pf.contaAssociada.planoAssinado = Basico implies 
-        all c : pf.catalogoAcessivel | c.planoMinimo = Basico
+// Funções: 
 
-    // Plano Plus libera acesso aos conteúdos básicos e aos pluses, mas não aos premiums.
-    all pf : Perfil | pf.contaAssociada.planoAssinado = Plus implies
-            all c : pf.catalogoAcessivel | c.planoMinimo != Premium
+// Função que retorna o conjunto de conteudos liberados para determinado plano
+fun conteudosLiberados[pl: Plano]: set Conteudo {
+    {c: Conteudo | c.planoMinimo = pl or (pl = Plus and c.planoMinimo = Basico) or (pl = Premium)}
+}
 
-    // Plano Premium libera acesso a todos os conteúdos.
-    all pf : Perfil | pf.contaAssociada.planoAssinado = Premium implies
-            all c : pf.catalogoAcessivel | c.planoMinimo in Plano
+// Função que retorna o conjunto de usuários que tem o plano premium
+fun usuariosPlanoPremium: set Usuario {
+  {u : Usuario | u.planoAssinado = Premium}
+}
+
+// Função que retorna o conjunto de usuários que tem o plano básico
+fun usuariosPlanoBasico: set Usuario {
+  {u : Usuario | u.planoAssinado = Basico}
+}
+
+// Função que retorna o conjunto de usuários que tem o plano plus
+fun usuariosPlanoPlus: set Usuario {
+  {u : Usuario | u.planoAssinado = Plus}
+}
+
+// Predicados: 
+
+// Testa se um usuario pode assistir certo conteudo
+pred planoCompativel[p : Plano, c : Conteudo] {
+  c.planoMinimo = Basico
+  or (p = Plus and c.planoMinimo != Premium)
+  or p = Premium
 }
 
 // Testes:
@@ -138,6 +159,8 @@ assert PremiumTemAcessoATudo {
     all p : Perfil | p.contaAssociada.planoAssinado = Premium implies
         all c : Conteudo | c in p.catalogoAcessivel
 }
+
+
 
 check PlataformaVazia for 5
 check PerfilPertenceAoUsuario for 5
