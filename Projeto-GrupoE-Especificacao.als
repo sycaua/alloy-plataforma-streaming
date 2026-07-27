@@ -32,7 +32,6 @@ sig Conteudo {
 
 sig Usuario {
     planoAssinado: one Plano,
-    classificacaoIndicativa: one ClassificacaoIndicativa,
     perfisAssociados: set Perfil 
 }
 
@@ -85,14 +84,6 @@ fact LimitacoesDeAcessoPlanos {
     // Plano Premium libera acesso a todos os conteúdos.
     all pf : Perfil | pf.contaAssociada.planoAssinado = Premium implies
             all c : pf.catalogoAcessivel | c.planoMinimo in Plano
-}
-
-// Fato: o acesso aos conteudos é definido pela idade
-fact LimitacoesDeAcessoClassificacaoIndicativa {
-    all u : Usuario | all p : u.perfisAssociados | all c : p.catalogoAcessivel |
-        (u.classificacaoIndicativa = Livre implies c.classificacaoIndicativa = Livre) and
-        (u.classificacaoIndicativa = ApenasAdolescentes implies c.classificacaoIndicativa in Livre + ApenasAdolescentes) and
-        (u.classificacaoIndicativa = ApenasAdultos implies c.classificacaoIndicativa in Livre + ApenasAdultos)
 }
 
 // Testes:
@@ -148,26 +139,6 @@ assert PremiumTemAcessoATudo {
         all c : Conteudo | c in p.catalogoAcessivel
 }
 
-// Adultos e adolecentes podem ver conteudo livre
-assert ConteudoLivrePodeSerVistoPorTodos {
-    all c : Conteudo | c.classificacaoIndicativa = Livre implies
-        all p : Perfil | c in p.catalogoAcessivel
-}
-
-// Adolescentes não podem ver conteúdo adulto
-assert ConteudoAdultoNaoEVistoPorAdolescentes {
-    no u : Usuario | u.classificacaoIndicativa = ApenasAdolescentes and
-        some p : u.perfisAssociados |
-            some c : p.catalogoAcessivel | c.classificacaoIndicativa = ApenasAdultos
-}
-
-// Adultos não podem ver conteúdo adolescente
-assert ConteudoAdolescenteNaoEVistoPorAdultos {
-    no u : Usuario | u.classificacaoIndicativa = ApenasAdultos and
-        some p : u.perfisAssociados |
-            some c : p.catalogoAcessivel | c.classificacaoIndicativa = ApenasAdolescentes
-}
-
 check PlataformaVazia for 5
 check PerfilPertenceAoUsuario for 5
 check TamanhoMaximoBasico for 5
@@ -177,8 +148,5 @@ check BasicoNaoAcessaPlusNemPremium for 5
 check PlusNaoAcessaPremium for 5
 check PlusAcessaTodoBasico for 5
 check PremiumTemAcessoATudo for 5
-check ConteudoLivrePodeSerVistoPorTodos for 5
-check ConteudoAdultoNaoEVistoPorAdolescentes for 5
-check ConteudoAdolescenteNaoEVistoPorAdultos for 5
 
 run {} for 5
