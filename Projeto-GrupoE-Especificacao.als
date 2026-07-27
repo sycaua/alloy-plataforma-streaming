@@ -1,3 +1,7 @@
+/*
+ * Assinaturas base
+ */
+
 abstract sig TipoDeConteudo {}
 one sig Filme, Serie, Documentario extends TipoDeConteudo {}
 
@@ -24,23 +28,23 @@ sig Conteudo {
 
 sig Usuario {
     planoAssinado: one Plano,
-    perfisAssociados: set Perfil 
+    perfisAssociados: set Perfil,
+    perfisEmUso: set Perfil
 }
 
 sig Perfil {
     contaAssociada: one Usuario,
-    catalogoAcessivel: set Conteudo
+    catalogoAcessivel: set Conteudo,
+    estahAssistindo: set Conteudo
 }
 
-// Fato: uma única plataforma para todos os componentes.
-fact PlataformaUnica {
-    all c : Conteudo | one p : Plataforma | c in p.conteudos
+/*
+ * Fatos e regras
+ */
 
-    all u : Usuario |
-        one p : Plataforma | u in p.usuarios
-
-    all pf : Perfil |
-        one p : Plataforma | pf in p.perfis
+// Fato: plataforma não pode ser vazia.
+fact PlataformaNaoVazia {
+    some Conteudo
 }
 
 // Fato: todo perfil é associado a exatamente um usuário.
@@ -48,18 +52,31 @@ fact AssociacaoPerfil {
     all u : Usuario | u.perfisAssociados = u.~contaAssociada
 }
 
-// Fato: restrições numéricas dos números de perfis permitidos por tipo de plano assinado.
+// Fato: perfis em uso pertencem ao mesmo usuário.
+fact AssociacaoPerfilEmUso {
+    all u : Usuario | u.perfisEmUso in u.perfisAssociados
+}
+
+// Fato: apenas perfis ativos (isto é, que estão assistindo algo) acessam conteúdos.
+fact AcesssoAtivo {
+    all u : Usuario | all pf : u.perfisAssociados | pf in u.perfisEmUso iff some pf.estahAssistindo
+}
+
+// Fato: perfis só podem assistir conteúdos acessíveis.
+fact ApenasAcessosPossiveis {
+    all pf : Perfil | pf.estahAssistindo in pf.catalogoAcessivel
+}
+
+// Fato: restrições numéricas do número de perfis acessando conteúdos por tipo de plano assinado.
 fact LimitacoesNumericasPlanos {
 
     // Plano Básico: no máximo dois perfis simultâneos.
-    all u : Usuario |
-        u.planoAssinado = Basico implies #u.perfisAssociados <= 2
+    all u : Usuario | u.planoAssinado = Basico implies #u.perfisEmUso <= 2
 
     // Plano Plus: no máximo quatro perfis simultâneos.
-    all u : Usuario | u.planoAssinado = Plus implies #u.perfisAssociados <= 4
+    all u : Usuario | u.planoAssinado = Basico implies #u.perfisEmUso <= 4
 
     // Plano Premium: sem limites de perfis.
-    all u : Usuario | u.planoAssinado = Premium implies #u.perfisAssociados >= 0
 }
 
 // Fato: o acesso aos conteúdos é definido pelo tipo de plano do usuário.
@@ -72,17 +89,15 @@ fact LimitacoesDeAcessoPlanos {
     // Plano Plus libera acesso aos conteúdos básicos e aos pluses, mas não aos premiums.
     all pf : Perfil | pf.contaAssociada.planoAssinado = Plus implies
             all c : pf.catalogoAcessivel | c.planoMinimo != Premium
-
-    // Plano Premium libera acesso a todos os conteúdos.
-    all pf : Perfil | pf.contaAssociada.planoAssinado = Premium implies
-            all c : pf.catalogoAcessivel | c.planoMinimo in Plano
 }
 
-// Testes:
+/*
+ * Asserts e testes
+ */
 
 // Plataforma vazia
 assert PlataformaVazia {
-    no p : Plataforma | #p.conteudos = 0 and #p.usuarios = 0 and #p.perfis = 0
+    some Conteudo
 } 
 
 // Toda perfil deve ter um usuario
