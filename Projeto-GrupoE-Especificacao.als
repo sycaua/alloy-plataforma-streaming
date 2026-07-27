@@ -74,7 +74,7 @@ fact LimitacoesNumericasPlanos {
     all u : Usuario | u.planoAssinado = Basico implies #u.perfisEmUso <= 2
 
     // Plano Plus: no máximo quatro perfis simultâneos.
-    all u : Usuario | u.planoAssinado = Basico implies #u.perfisEmUso <= 4
+    all u : Usuario | u.planoAssinado = Plus implies #u.perfisEmUso <= 4
 
     // Plano Premium: sem limites de perfis.
 }
@@ -83,6 +83,12 @@ fact LimitacoesNumericasPlanos {
 fact LimitacoesDeAcessoPlanos {
   all pf : Perfil | all c : pf.catalogoAcessivel |
     planoCompativel[pf.contaAssociada.planoAssinado, c]
+}
+
+// Fato: todo perfil sempre vê o catálogo inteiro permitido pelo seu plano
+fact CatalogoCompleto {
+    all pf : Perfil | all c : Conteudo |
+        planoCompativel[pf.contaAssociada.planoAssinado, c] implies c in pf.catalogoAcessivel
 }
 
 // Funções: 
@@ -132,12 +138,12 @@ assert PerfilPertenceAoUsuario {
 
 // Usuarios com contas basicas so podem ter no maximo 2 perfis
 assert TamanhoMaximoBasico {
-    no u : Usuario | u.planoAssinado = Basico and #u.perfisAssociados > 2
+    no u : Usuario | u.planoAssinado = Basico and #u.perfisEmUso > 2
 }
 
 // Usuarios com contas premium so podem ter no maximo 4 perfis
 assert TamanhoMaximoPlus {
-    no u : Usuario | u.planoAssinado = Plus and #u.perfisAssociados > 4
+    no u : Usuario | u.planoAssinado = Plus and #u.perfisEmUso > 4
 }
 
 // usuarios de plano basico so podem acessar conteudo basico
