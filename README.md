@@ -12,8 +12,8 @@ O sistema têm as seguintes características:
 - Um usuário tem três opções de plano para assinar: Básico, Plus ou Premium.
 - Usuários com o Plano Básico podem ter, no máximo, dois perfis acessando conteúdo simultâneamente.
 - Usuários com o Plano Plus podem ter, no máximo, quatro perfis acessando conteúdo simultâneamente.
-- Usuários com o Plano Premium não têm restrições de perfis.
-- Conteúdos podem exigir um tipo mínimo de plano para serem reproduzidos.
+- Usuários com o Plano Premium não têm restrições de acesso quanto aos perfis.
+- Conteúdos podem exigir um tipo mínimo de plano para serem reproduzidos, onde o Básico é o padrão.
 - Um usuário de Plano Básico só pode reproduzir, nos seus perfis, conteúdos com nível básico.
 - Um usuário de Plano Plus pode reproduzir, nos seus perfis, conteúdos com nível básico ou plus.
 - Um usuário de Plano Premium não possui restrições de nível de plano.
