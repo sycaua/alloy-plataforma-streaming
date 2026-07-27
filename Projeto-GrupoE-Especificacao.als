@@ -1,11 +1,3 @@
-module plataforma
-
-one sig Plataforma {
-    conteudos: set Conteudo,
-    usuarios: set Usuario,
-    perfis: set Perfil
-}
-
 abstract sig TipoDeConteudo {}
 one sig Filme, Serie, Documentario extends TipoDeConteudo {}
 
