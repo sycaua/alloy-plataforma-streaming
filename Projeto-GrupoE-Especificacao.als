@@ -45,6 +45,8 @@ sig Perfil {
 // Fato: plataforma não pode ser vazia.
 fact PlataformaNaoVazia {
     some Conteudo
+    some Usuario
+    some Perfil
 }
 
 // Fato: todo perfil é associado a exatamente um usuário.
@@ -79,23 +81,23 @@ fact LimitacoesNumericasPlanos {
     // Plano Premium: sem limites de perfis.
 }
 
-// Fato: o acesso aos conteúdos é definido pelo tipo de plano do usuário.
-fact LimitacoesDeAcessoPlanos {
-  all pf : Perfil | all c : pf.catalogoAcessivel |
-    planoCompativel[pf.contaAssociada.planoAssinado, c]
-}
-
-// Fato: todo perfil sempre vê o catálogo inteiro permitido pelo seu plano
-fact CatalogoCompleto {
-    all pf : Perfil | all c : Conteudo |
-        planoCompativel[pf.contaAssociada.planoAssinado, c] implies c in pf.catalogoAcessivel
+// Garante que o catálogo acessível de cada perfil contenha exatamente os conteúdos permitidos pelo plano assinado pelo usuário associado ao perfil.
+fact CatalogoCorreto {
+    all p: Perfil |
+        p.catalogoAcessivel =
+            conteudosLiberados[
+                p.contaAssociada.planoAssinado
+            ]
 }
 
 // Funções: 
 
 // Função que retorna o conjunto de conteudos liberados para determinado plano
 fun conteudosLiberados[pl: Plano]: set Conteudo {
-    {c: Conteudo | c.planoMinimo = pl or (pl = Plus and c.planoMinimo = Basico) or (pl = Premium)}
+    {
+        c: Conteudo |
+            planoCompativel[pl, c]
+    }
 }
 
 // Função que retorna o conjunto de usuários que tem o plano premium
@@ -122,71 +124,81 @@ pred planoCompativel[p : Plano, c : Conteudo] {
   or p = Premium
 }
 
+// Define um cenário específico para testar.Neste cenário, um usuário do plano Básico possui três perfis,apenas dois deles estão em uso, e um perfil assiste a dois conteúdos simultaneamente.
+pred CenarioExemplo {
+    some u: Usuario | {
+
+        u.planoAssinado = Basico
+
+        // O usuário possui três perfis cadastrados.
+        #u.perfisAssociados = 3
+
+        // Somente dois perfis estão em uso.
+        #u.perfisEmUso = 2
+
+        // Existem dois conteúdos básicos distintos.
+        some disj c1, c2: Conteudo | {
+
+            c1.planoMinimo = Basico
+            c2.planoMinimo = Basico
+
+            // Um perfil está assistindo aos dois conteúdos.
+            some p: u.perfisEmUso |
+                c1 + c2 in p.estahAssistindo
+        }
+    }
+}
+
 /*
  * Asserts e testes
  */
 
-// Plataforma vazia
-assert PlataformaVazia {
-    some Conteudo
-} 
-
-// Toda perfil deve ter um usuario
-assert PerfilPertenceAoUsuario {
-    all p : Perfil | p in p.contaAssociada.perfisAssociados
+// Verifica se a hierarquia de acesso entre os planos é respeitada todo conteúdo acessível pelo plano Básico também deve ser acessível pelo Plus,e todo conteúdo acessível pelo Plus também deve ser acessível pelo Premium.
+assert HierarquiaDosPlanos {
+    conteudosLiberados[Basico] in conteudosLiberados[Plus]
+    and
+    conteudosLiberados[Plus] in conteudosLiberados[Premium]
 }
 
-// Usuarios com contas basicas so podem ter no maximo 2 perfis
-assert TamanhoMaximoBasico {
-    no u : Usuario | u.planoAssinado = Basico and #u.perfisEmUso > 2
+// Perfis associados a planos iguais devem possuir exatamente o mesmo catálogo acessível
+assert MesmoPlanoMesmoCatalogo {
+    all p1, p2: Perfil |
+        p1.contaAssociada.planoAssinado =
+        p2.contaAssociada.planoAssinado
+
+        implies
+
+        p1.catalogoAcessivel =
+        p2.catalogoAcessivel
 }
 
-// Usuarios com contas premium so podem ter no maximo 4 perfis
-assert TamanhoMaximoPlus {
-    no u : Usuario | u.planoAssinado = Plus and #u.perfisEmUso > 4
-}
+// A classificação indicativa não deve modificar as permissões de acesso.
+assert ClassificacaoNaoInterfereNoAcesso {
+    all p: Perfil |
+        all c1, c2: Conteudo |
 
-// usuarios de plano basico so podem acessar conteudo basico
-assert BasicoAcessaApenasBasico {
-    no pf : Perfil | pf.contaAssociada.planoAssinado = Basico and
-        some c : pf.catalogoAcessivel | c.planoMinimo != Basico
-}
+            c1.planoMinimo = c2.planoMinimo
 
-// usuarios do plano basico não podem acessar conteudos plus ou premium
-assert BasicoNaoAcessaPlusNemPremium {
-    all p : Perfil | p.contaAssociada.planoAssinado = Basico implies
-        all c : p.catalogoAcessivel | c.planoMinimo = Basico
-}
+            implies
 
-// usuarios do plano plus não podem acessar conteudos premium
-assert PlusNaoAcessaPremium {
-    all p : Perfil | p.contaAssociada.planoAssinado = Plus implies
-        all c : p.catalogoAcessivel | c.planoMinimo != Premium 
-}
-
-// usuarios do plano plus podem acessar conteudos basicos
-assert PlusAcessaTodoBasico {
-    all p : Perfil | p.contaAssociada.planoAssinado = Plus implies
-        all c : Conteudo | c.planoMinimo = Basico implies
-            c in p.catalogoAcessivel
-}
-
-// usuarios premium podem acessar todos os conteudos
-assert PremiumTemAcessoATudo {
-    all p : Perfil | p.contaAssociada.planoAssinado = Premium implies
-        all c : Conteudo | c in p.catalogoAcessivel
+            (
+                c1 in p.catalogoAcessivel
+                iff
+                c2 in p.catalogoAcessivel
+            )
 }
 
 
+check HierarquiaDosPlanos for 5
 
-check PlataformaVazia for 5
-check PerfilPertenceAoUsuario for 5
-check TamanhoMaximoBasico for 5
-check TamanhoMaximoPlus for 5
-check BasicoAcessaApenasBasico for 5
-check BasicoNaoAcessaPlusNemPremium for 5
-check PlusNaoAcessaPremium for 5
-check PlusAcessaTodoBasico for 5
-check PremiumTemAcessoATudo for 5
+check MesmoPlanoMesmoCatalogo for 5
 
+check ClassificacaoNaoInterfereNoAcesso for 5
+
+//Instancia generica do sitema
 run {} for 5
+
+//Cenario especifico
+run CenarioExemplo for 5
+
+
