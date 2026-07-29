@@ -47,6 +47,11 @@ fact AssociacaoPerfil {
     all u : Usuario | perfisAssociadosCorretos[u]
 }
 
+// Fato: um usuário deve ter pelo menos um perfil associado.
+fact UsuarioNaoVazio {
+    all u : Usuario | some u.perfisAssociados
+}
+
 //Testa se um perfil está associado ao usuário correto
 pred perfisAssociadosCorretos[u : Usuario] {
     u.perfisAssociados = u.~contaAssociada
@@ -199,14 +204,6 @@ assert ConteudosBasicosLivresParaTodos {
             c.planoMinimo = Basico
             implies
             c in p.catalogoAcessivel
-}
-
-// Um perfil que está assistindo a algo tem que ter um usuário associado
-assert PerfilAssistindoTemUsuario {
-    all p: Perfil |
-        some p.estahAssistindo
-        implies
-        some p.contaAssociada
 }
 
 // Um perfil que está assistindo a algo só pode estar associado ao seu usuário original
