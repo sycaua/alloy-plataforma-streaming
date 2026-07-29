@@ -52,7 +52,7 @@ fact UsuarioNaoVazio {
     all u : Usuario | some u.perfisAssociados
 }
 
-//Testa se um perfil está associado ao usuário correto
+// Um perfil está associado ao usuário correto.
 pred perfisAssociadosCorretos[u : Usuario] {
     u.perfisAssociados = u.~contaAssociada
 }
@@ -62,7 +62,7 @@ fact AssociacaoPerfilEmUso {
     all u : Usuario | perfisEmUsoCorretos[u]
 }
 
-//Testa se um perfil em uso está associado ao usuário correto
+// Um perfil em uso está associado ao usuário correto.
 pred perfisEmUsoCorretos[u : Usuario] {
     u.perfisEmUso in u.perfisAssociados
 }
@@ -72,12 +72,12 @@ fact AcesssoAtivo {
     all u : Usuario | perfisAtivos[u]
 }
 
-//Testa se um perfil ativo está assistindo a algum conteúdo
+// Um perfil ativo está assistindo a algum conteúdo
 pred perfisAtivos[u : Usuario] {
     all pf : u.perfisAssociados | perfilEstahEmUso[pf,u] 
 }
 
-//Testa se um perfil está em uso por um usuário
+// Um perfil está em uso por um usuário
 pred perfilEstahEmUso[pf : Perfil, u : Usuario] {
     pf in u.perfisEmUso iff some pf.estahAssistindo
 }
@@ -87,7 +87,7 @@ fact ApenasAcessosPossiveis {
     all pf : Perfil | perfilAssistindoConteudoAcessivel[pf]
 }
 
-//Testa se um perfil está assistindo a conteúdos acessíveis
+// Um perfil está assistindo a conteúdos acessíveis
 pred perfilAssistindoConteudoAcessivel[pf : Perfil] {
     pf.estahAssistindo in pf.catalogoAcessivel
 }
@@ -95,14 +95,10 @@ pred perfilAssistindoConteudoAcessivel[pf : Perfil] {
 // Fato: restrições numéricas do número de perfis acessando conteúdos por tipo de plano
 // assinado.
 fact LimitacoesNumericasPlanos {
-
     // Plano Básico: no máximo dois perfis simultâneos.
-    all u : Usuario | limitePerfisPorPlano[u] 
-
     // Plano Plus: no máximo quatro perfis simultâneos.
-    all u : Usuario | limitePerfisPorPlano[u]
-
     // Plano Premium: sem limites de perfis.
+    all u : Usuario | limitePerfisPorPlano[u]
 }
 
 //Testa se o número de perfis está dentro do limite permitido pelo plano assinado
@@ -115,11 +111,7 @@ pred limitePerfisPorPlano[u : Usuario] {
 // Garante que o catálogo acessível de cada perfil contenha exatamente os conteúdos permitidos
 // pelo plano assinado pelo usuário associado ao perfil.
 fact CatalogoCorreto {
-    all p: Perfil |
-        p.catalogoAcessivel =
-            conteudosLiberados[
-                p.contaAssociada.planoAssinado
-            ]
+    all p: Perfil | p.catalogoAcessivel = conteudosLiberados[p.contaAssociada.planoAssinado]
 }
 
 /*
@@ -127,33 +119,30 @@ fact CatalogoCorreto {
  */
 
 // Função que retorna o conjunto de conteudos liberados para determinado plano
-fun conteudosLiberados[pl: Plano]: set Conteudo {
-    {
-        c: Conteudo |
-            planoCompativel[pl, c]
-    }
+fun conteudosLiberados[pf: Plano]: set Conteudo {
+    { c: Conteudo | planoCompativel[pf, c] }
 }
 
 // Função que retorna o conjunto de usuários que tem o plano premium
 fun usuariosPlanoPremium: set Usuario {
-  {u : Usuario | u.planoAssinado = Premium}
+    { u : Usuario | u.planoAssinado = Premium }
 }
 
 // Função que retorna o conjunto de usuários que tem o plano básico
 fun usuariosPlanoBasico: set Usuario {
-  {u : Usuario | u.planoAssinado = Basico}
+    { u : Usuario | u.planoAssinado = Basico }
 }
 
 // Função que retorna o conjunto de usuários que tem o plano plus
 fun usuariosPlanoPlus: set Usuario {
-  {u : Usuario | u.planoAssinado = Plus}
+    { u : Usuario | u.planoAssinado = Plus }
 }
 
-// Testa se um usuario pode assistir certo conteudo
+// Um usuario pode assistir somente certo conteúdos.
 pred planoCompativel[p : Plano, c : Conteudo] {
-  c.planoMinimo = Basico
-  or (p = Plus and c.planoMinimo != Premium)
-  or p = Premium
+    c.planoMinimo = Basico
+    or (p = Plus and c.planoMinimo != Premium)
+    or p = Premium
 }
 
 /*
@@ -165,20 +154,16 @@ pred planoCompativel[p : Plano, c : Conteudo] {
 // deve ser acessível pelo Premium.
 assert HierarquiaDosPlanos {
     conteudosLiberados[Basico] in conteudosLiberados[Plus]
-    and
+        and
     conteudosLiberados[Plus] in conteudosLiberados[Premium]
 }
 
 // Perfis associados a planos iguais devem possuir exatamente o mesmo catálogo acessível
 assert MesmoPlanoMesmoCatalogo {
     all p1, p2: Perfil |
-        p1.contaAssociada.planoAssinado =
-        p2.contaAssociada.planoAssinado
-
-        implies
-
-        p1.catalogoAcessivel =
-        p2.catalogoAcessivel
+        p1.contaAssociada.planoAssinado = p2.contaAssociada.planoAssinado
+            implies
+        p1.catalogoAcessivel = p2.catalogoAcessivel
 }
 
 // A classificação indicativa não deve modificar as permissões de acesso.
@@ -216,8 +201,7 @@ assert PerfilAssistindoAssociadoApenasAoUsuarioOriginal {
 
 // Conteúdos sendo assistidos precisam estar contidos no catálogo acessível pelo perfil
 assert ConteudosAssistidosNoCatalogo {
-    all p: Perfil |
-        p.estahAssistindo in p.catalogoAcessivel
+    all p: Perfil | p.estahAssistindo in p.catalogoAcessivel
 }
 
 check HierarquiaDosPlanos for 5
