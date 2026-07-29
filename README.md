@@ -4,6 +4,7 @@ Código desenvolvido como projeto da disciplina de Lógica para Computação (pe
 
 O sistema têm as seguintes características:
 - A plataforma é composta por conteúdos, usuários e perfis.
+- A plataforma deve conter, no mínimo, um conteúdo, um usuário e um perfil.
 - Os conteúdos podem ser séries, filmes ou documentários.
 - Todo conteúdo pode ter classificação indicativa, restrita às opções "livre para todas as idades", "apenas para adolescentes" ou "apenas para adultos".
 - Um único usuário pode ter multiplos perfis, cada um independente do outro.
