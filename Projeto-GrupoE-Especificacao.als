@@ -90,7 +90,9 @@ fact CatalogoCorreto {
             ]
 }
 
-// Funções: 
+/*
+ * Funções e predicados
+ */
 
 // Função que retorna o conjunto de conteudos liberados para determinado plano
 fun conteudosLiberados[pl: Plano]: set Conteudo {
@@ -115,8 +117,6 @@ fun usuariosPlanoPlus: set Usuario {
   {u : Usuario | u.planoAssinado = Plus}
 }
 
-// Predicados: 
-
 // Testa se um usuario pode assistir certo conteudo
 pred planoCompativel[p : Plano, c : Conteudo] {
   c.planoMinimo = Basico
@@ -124,7 +124,9 @@ pred planoCompativel[p : Plano, c : Conteudo] {
   or p = Premium
 }
 
-// Define um cenário específico para testar.Neste cenário, um usuário do plano Básico possui três perfis,apenas dois deles estão em uso, e um perfil assiste a dois conteúdos simultaneamente.
+// Define um cenário específico para testar. Neste cenário, um usuário
+// do plano Básico possui três perfis,apenas dois deles estão em uso,
+// e um perfil assiste a dois conteúdos simultaneamente.
 pred CenarioExemplo {
     some u: Usuario | {
 
@@ -153,7 +155,10 @@ pred CenarioExemplo {
  * Asserts e testes
  */
 
-// Verifica se a hierarquia de acesso entre os planos é respeitada todo conteúdo acessível pelo plano Básico também deve ser acessível pelo Plus,e todo conteúdo acessível pelo Plus também deve ser acessível pelo Premium.
+// Verifica se a hierarquia de acesso entre os planos é respeitada
+// todo conteúdo acessível pelo plano Básico também deve ser acessível
+// pelo Plus, e todo conteúdo acessível pelo Plus também deve ser acessível
+// pelo Premium.
 assert HierarquiaDosPlanos {
     conteudosLiberados[Basico] in conteudosLiberados[Plus]
     and
@@ -220,7 +225,6 @@ assert ConteudosAssistidosNoCatalogo {
 }
 
 check HierarquiaDosPlanos for 5
-
 check MesmoPlanoMesmoCatalogo for 5
 
 check ClassificacaoNaoInterfereNoAcesso for 5
@@ -228,14 +232,7 @@ check ClassificacaoNaoInterfereNoAcesso for 5
 check ConteudosBasicosLivresParaTodos for 5
 
 check PerfilAssistindoTemUsuario for 5
-
 check PerfilAssistindoAssociadoApenasAoUsuarioOriginal for 5
-
 check ConteudosAssistidosNoCatalogo for 5
-//Instancia generica do sitema
+
 run {} for 5
-
-//Cenario especifico
-run CenarioExemplo for 5
-
-
