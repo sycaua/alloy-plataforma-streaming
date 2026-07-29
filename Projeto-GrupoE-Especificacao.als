@@ -151,32 +151,6 @@ pred planoCompativel[p : Plano, c : Conteudo] {
   or p = Premium
 }
 
-// Define um cenário específico para testar. Neste cenário, um usuário do plano Básico possui três perfis, apenas dois deles estão em uso, e um perfil assiste a dois conteúdos
-// simultaneamente.
-pred CenarioExemplo {
-    some u: Usuario | {
-
-        u.planoAssinado = Basico
-
-        // O usuário possui três perfis cadastrados.
-        #u.perfisAssociados = 3
-
-        // Somente dois perfis estão em uso.
-        #u.perfisEmUso = 2
-
-        // Existem dois conteúdos básicos distintos.
-        some disj c1, c2: Conteudo | {
-
-            c1.planoMinimo = Basico
-            c2.planoMinimo = Basico
-
-            // Um perfil está assistindo aos dois conteúdos.
-            some p: u.perfisEmUso |
-                c1 + c2 in p.estahAssistindo
-        }
-    }
-}
-
 /*
  * Asserts e testes
  */
