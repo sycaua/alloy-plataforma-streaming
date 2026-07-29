@@ -42,13 +42,6 @@ some sig Perfil {
  * Fatos e regras
  */
 
-// Fato: plataforma não pode ser vazia.
-fact PlataformaNaoVazia {
-    some Conteudo
-    some Usuario
-    some Perfil
-}
-
 // Fato: todo perfil é associado a exatamente um usuário.
 fact AssociacaoPerfil {
     all u : Usuario | u.perfisAssociados = u.~contaAssociada
@@ -69,7 +62,8 @@ fact ApenasAcessosPossiveis {
     all pf : Perfil | pf.estahAssistindo in pf.catalogoAcessivel
 }
 
-// Fato: restrições numéricas do número de perfis acessando conteúdos por tipo de plano assinado.
+// Fato: restrições numéricas do número de perfis acessando conteúdos por tipo de plano
+// assinado.
 fact LimitacoesNumericasPlanos {
 
     // Plano Básico: no máximo dois perfis simultâneos.
@@ -81,7 +75,8 @@ fact LimitacoesNumericasPlanos {
     // Plano Premium: sem limites de perfis.
 }
 
-// Garante que o catálogo acessível de cada perfil contenha exatamente os conteúdos permitidos pelo plano assinado pelo usuário associado ao perfil.
+// Garante que o catálogo acessível de cada perfil contenha exatamente os conteúdos permitidos
+// pelo plano assinado pelo usuário associado ao perfil.
 fact CatalogoCorreto {
     all p: Perfil |
         p.catalogoAcessivel =
@@ -124,9 +119,8 @@ pred planoCompativel[p : Plano, c : Conteudo] {
   or p = Premium
 }
 
-// Define um cenário específico para testar. Neste cenário, um usuário
-// do plano Básico possui três perfis,apenas dois deles estão em uso,
-// e um perfil assiste a dois conteúdos simultaneamente.
+// Define um cenário específico para testar. Neste cenário, um usuário do plano Básico possui três perfis, apenas dois deles estão em uso, e um perfil assiste a dois conteúdos
+// simultaneamente.
 pred CenarioExemplo {
     some u: Usuario | {
 
@@ -155,10 +149,9 @@ pred CenarioExemplo {
  * Asserts e testes
  */
 
-// Verifica se a hierarquia de acesso entre os planos é respeitada
-// todo conteúdo acessível pelo plano Básico também deve ser acessível
-// pelo Plus, e todo conteúdo acessível pelo Plus também deve ser acessível
-// pelo Premium.
+// Verifica se a hierarquia de acesso entre os planos é respeitada todo conteúdo acessível pelo
+// plano Básico também deve ser acessível pelo Plus, e todo conteúdo acessível pelo Plus também
+// deve ser acessível pelo Premium.
 assert HierarquiaDosPlanos {
     conteudosLiberados[Basico] in conteudosLiberados[Plus]
     and
