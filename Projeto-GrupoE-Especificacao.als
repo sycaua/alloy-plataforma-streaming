@@ -44,22 +44,47 @@ some sig Perfil {
 
 // Fato: todo perfil é associado a exatamente um usuário.
 fact AssociacaoPerfil {
-    all u : Usuario | u.perfisAssociados = u.~contaAssociada
+    all u : Usuario | perfisAssociadosCorretos[u]
+}
+
+//Testa se um perfil está associado ao usuário correto
+pred perfisAssociadosCorretos[u : Usuario] {
+    u.perfisAssociados = u.~contaAssociada
 }
 
 // Fato: perfis em uso pertencem ao mesmo usuário.
 fact AssociacaoPerfilEmUso {
-    all u : Usuario | u.perfisEmUso in u.perfisAssociados
+    all u : Usuario | perfisEmUsoCorretos[u]
+}
+
+//Testa se um perfil em uso está associado ao usuário correto
+pred perfisEmUsoCorretos[u : Usuario] {
+    u.perfisEmUso in u.perfisAssociados
 }
 
 // Fato: apenas perfis ativos (isto é, que estão assistindo algo) acessam conteúdos.
 fact AcesssoAtivo {
-    all u : Usuario | all pf : u.perfisAssociados | pf in u.perfisEmUso iff some pf.estahAssistindo
+    all u : Usuario | perfisAtivos[u]
+}
+
+//Testa se um perfil ativo está assistindo a algum conteúdo
+pred perfisAtivos[u : Usuario] {
+    all pf : u.perfisAssociados | perfilEstahEmUso[pf,u] 
+}
+
+//Testa se um perfil está em uso por um usuário
+pred perfilEstahEmUso[pf : Perfil, u : Usuario] {
+    pf in u.perfisEmUso iff some pf.estahAssistindo
 }
 
 // Fato: perfis só podem assistir conteúdos acessíveis.
 fact ApenasAcessosPossiveis {
-    all pf : Perfil | pf.estahAssistindo in pf.catalogoAcessivel
+    all pf : Perfil | perfilAssistindoConteudoAcessivel[pf]
+}
+
+//Testa se um perfil está assistindo a conteúdos acessíveis
+pred perfilAssistindoConteudoAcessivel[pf : Perfil] {
+    pf.estahAssistindo in pf.catalogoAcessivel
 }
 
 // Fato: restrições numéricas do número de perfis acessando conteúdos por tipo de plano
@@ -67,12 +92,19 @@ fact ApenasAcessosPossiveis {
 fact LimitacoesNumericasPlanos {
 
     // Plano Básico: no máximo dois perfis simultâneos.
-    all u : Usuario | u.planoAssinado = Basico implies #u.perfisEmUso <= 2
+    all u : Usuario | limitePerfisPorPlano[u] 
 
     // Plano Plus: no máximo quatro perfis simultâneos.
-    all u : Usuario | u.planoAssinado = Plus implies #u.perfisEmUso <= 4
+    all u : Usuario | limitePerfisPorPlano[u]
 
     // Plano Premium: sem limites de perfis.
+}
+
+//Testa se o número de perfis está dentro do limite permitido pelo plano assinado
+pred limitePerfisPorPlano[u : Usuario] {
+    (u.planoAssinado = Basico implies #u.perfisEmUso <= 2)
+    and
+    (u.planoAssinado = Plus implies #u.perfisEmUso <= 4)
 }
 
 // Garante que o catálogo acessível de cada perfil contenha exatamente os conteúdos permitidos
