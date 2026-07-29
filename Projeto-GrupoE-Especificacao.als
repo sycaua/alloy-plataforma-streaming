@@ -12,7 +12,7 @@ one sig Livre, ApenasAdolescentes, ApenasAdultos extends ClassificacaoIndicativa
 abstract sig Plano {}
 one sig Basico, Plus, Premium extends Plano {}
 
-sig Conteudo {
+some sig Conteudo {
     tipoDoConteudo: one TipoDeConteudo,
     classificacaoIndicativa: one ClassificacaoIndicativa,
 
@@ -26,13 +26,13 @@ sig Conteudo {
     planoMinimo: one Plano
 }
 
-sig Usuario {
+some sig Usuario {
     planoAssinado: one Plano,
     perfisAssociados: set Perfil,
     perfisEmUso: set Perfil
 }
 
-sig Perfil {
+some sig Perfil {
     contaAssociada: one Usuario,
     catalogoAcessivel: set Conteudo,
     estahAssistindo: set Conteudo
