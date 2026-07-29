@@ -188,6 +188,36 @@ assert ClassificacaoNaoInterfereNoAcesso {
             )
 }
 
+// Conteudos basicos podem ser acessados por qualquer perfil
+assert ConteudosBasicosLivresParaTodos {
+    all p: Perfil |
+        all c: Conteudo |
+            c.planoMinimo = Basico
+            implies
+            c in p.catalogoAcessivel
+}
+
+// Um perfil que está assistindo a algo tem que ter um usuário associado
+assert PerfilAssistindoTemUsuario {
+    all p: Perfil |
+        some p.estahAssistindo
+        implies
+        some p.contaAssociada
+}
+
+// Um perfil que está assistindo a algo só pode estar associado ao seu usuário original
+assert PerfilAssistindoAssociadoApenasAoUsuarioOriginal {
+    all p: Perfil |
+        some p.estahAssistindo
+        implies
+        (all u: Usuario | p in u.perfisEmUso implies u = p.contaAssociada)
+}
+
+// Conteúdos sendo assistidos precisam estar contidos no catálogo acessível pelo perfil
+assert ConteudosAssistidosNoCatalogo {
+    all p: Perfil |
+        p.estahAssistindo in p.catalogoAcessivel
+}
 
 check HierarquiaDosPlanos for 5
 
@@ -195,6 +225,13 @@ check MesmoPlanoMesmoCatalogo for 5
 
 check ClassificacaoNaoInterfereNoAcesso for 5
 
+check ConteudosBasicosLivresParaTodos for 5
+
+check PerfilAssistindoTemUsuario for 5
+
+check PerfilAssistindoAssociadoApenasAoUsuarioOriginal for 5
+
+check ConteudosAssistidosNoCatalogo for 5
 //Instancia generica do sitema
 run {} for 5
 
